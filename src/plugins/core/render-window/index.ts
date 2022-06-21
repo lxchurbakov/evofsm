@@ -1,7 +1,7 @@
 import { EventEmitter } from '/src/libs/events';
 
-import CanvasRender from '/src/plugins/canvas-render';
-import CanvasEvents from '/src/plugins/canvas-events';
+import CanvasRender from '/src/plugins/core/canvas-render';
+import CanvasEvents from '/src/plugins/core/canvas-events';
 
 export default class RenderWindow {
   public onRender = new EventEmitter<CanvasRenderingContext2D>();
@@ -18,11 +18,6 @@ export default class RenderWindow {
       context.translate(this.offset.x, this.offset.y);
       this.onRender.emitps(context);
       context.restore();
-    });
-
-    this.onRender.on((context) => {
-      context.beginPath();
-      context.fillText('Drag this text', 30, 30);
     });
   }
 };
