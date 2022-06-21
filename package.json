@@ -1,0 +1,22 @@
+{
+  "name": "evofsm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx parcel index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swensson/evofsm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/swensson/evofsm/issues"
+  },
+  "homepage": "https://github.com/swensson/evofsm#readme",
+  "devDependencies": {
+    "parcel": "^2.6.1"
+  }
+}
