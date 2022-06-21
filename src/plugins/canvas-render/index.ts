@@ -1,10 +1,10 @@
 import { EventEmitter } from '/src/libs/events';
 
 export default class CanvasRender {
-  onRender = new EventEmitter<CanvasRenderingContext2D>();
+  public onRender = new EventEmitter<CanvasRenderingContext2D>();
 
-  context: CanvasRenderingContext2D;
-  rect: DOMRect;
+  private context: CanvasRenderingContext2D;
+  private rect: DOMRect;
 
   constructor (rootNode: HTMLElement) {
     // First of all we create a canvas element and append
@@ -35,7 +35,7 @@ export default class CanvasRender {
     this.render();
   }
 
-  render = () => {
+  private render = () => {
     this.context.clearRect(0, 0, this.rect.width, this.rect.height);
     this.onRender.emitps(this.context);
 
