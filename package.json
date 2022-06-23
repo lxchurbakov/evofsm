@@ -18,9 +18,15 @@
   "homepage": "https://github.com/swensson/evofsm#readme",
   "devDependencies": {
     "@types/lodash": "^4.14.182",
-    "parcel": "^2.6.1"
+    "@types/react": "^18.0.14",
+    "@types/styled-components": "^5.1.25",
+    "parcel": "^2.6.1",
+    "process": "^0.11.10"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.5"
   }
 }
