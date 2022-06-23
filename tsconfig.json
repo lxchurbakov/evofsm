@@ -3,7 +3,7 @@
     "target": "es2015",
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "lib": "es2015",
+    "lib": "es2016",
     "module": "commonjs",
     "moduleResolution": "node",
     "typeRoots" : ["node_modules/@types", "./src/types"],

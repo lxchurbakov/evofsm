@@ -2,9 +2,9 @@ import { EventEmitter } from '/src/libs/events';
 
 export default class CanvasRender {
   public onRender = new EventEmitter<CanvasRenderingContext2D>();
+  public rect: DOMRect;
 
   private context: CanvasRenderingContext2D;
-  private rect: DOMRect;
 
   constructor (rootNode: HTMLElement) {
     // First of all we create a canvas element and append
