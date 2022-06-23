@@ -1,7 +1,8 @@
 import CanvasRender from '/src/plugins/core/canvas-render';
+import CanvasEvents from '/src/plugins/core/canvas-events';
 
 export type TickerConfig = { interval: number; color: string; };
-export type Ticker = { id: number; current: number; timeout: number; config: TickerConfig; };
+export type Ticker = { id: number; current: number; timeout: number; config: TickerConfig; cb: any; };
 
 const TICKER_INNER_RADIUS = 10;
 const TICKER_OUTER_RADIUS = 16;
@@ -17,9 +18,30 @@ export default class SimulationTicks {
   private current = () => new Date().getTime();
 
   // Hook on rendering to display tickers
-  constructor (private canvas: CanvasRender) {
+  constructor (private canvas: CanvasRender, private events: CanvasEvents) {
     this.canvas.onRender.on(this.render);
+    this.events.onKeyDown.on(this.handleKeyDown)
   }
+
+  public paused = false;
+
+  public pause = () => {
+    this.tickers.forEach((ticker) => {
+      clearInterval(ticker.timeout);
+    });
+    this.paused = true;
+  };
+
+  public resume = () => {
+    this.tickers.forEach((ticker) => {
+      ticker.timeout = setInterval(() => {
+        ticker.current = this.current();
+        ticker.cb();
+      }, ticker.config.interval);
+    });
+
+    this.paused = false;
+  };
 
   // Create a method to add ticker and start rendering it
   public add = <T extends () => void>(config: TickerConfig, cb: T) => {
@@ -32,11 +54,11 @@ export default class SimulationTicks {
 
       if (ticker) {
         ticker.current = this.current();
-        cb();
+        ticker.cb();
       }
     }, config.interval);
 
-    this.tickers.push({ id, current, timeout, config });
+    this.tickers.push({ id, current, timeout, config, cb });
 
     // Return a method that can be used to dispose the ticker
     return () => {
@@ -70,5 +92,15 @@ export default class SimulationTicks {
       context.closePath();
       context.fill();
     });
+  };
+
+  private handleKeyDown = (key: number) => {
+    if (key === 32) {
+      if (this.paused) {
+        this.resume();
+      } else {
+        this.pause();
+      }
+    }
   };
 };

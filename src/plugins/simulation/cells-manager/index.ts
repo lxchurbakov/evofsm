@@ -16,19 +16,19 @@ export default class CellsManager {
   public onNewCell = new EventEmitter<number>();
   public onRemoveCell = new EventEmitter<number>();
 
-
   public cells = [{ id: 0, x: 10, y: 10, brainId: 0 }];
 
   public add = (p: Point, brainId: number) => {
     const id = this.idgenerator++;
     this.cells.push({ ...p, id, brainId });
-    this.onNewCell.emitps(id);
+    // this.onNewCell.emitps(id);
+    return id;
   }
   public get = (id: number) => this.cells.find((c) => c.id === id);
   public update = (id: number, u) => this.cells = this.cells.map((c) => c.id === id ? u(c) : c);
   public remove = (id: number) => {
     this.cells = this.cells.filter((c) => c.id !== id);
-    this.onRemoveCell.emitps(id);
+    // this.onRemoveCell.emitps(id);
   }
   public ids = () => this.cells.map((c) => c.id);
 

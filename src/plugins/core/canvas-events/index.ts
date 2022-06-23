@@ -4,11 +4,9 @@ export type Point = { x: number, y: number };
 
 export default class CanvasEvents {
   public onDrag = new EventEmitter<Point>();
+  public onKeyDown = new EventEmitter<number>();
 
   constructor (rootNode: HTMLElement) {
-    // Now we create an div overlay to catch
-    // all the possible events and forward
-    // them to other plugins
     const eventsOverlayNode = document.createElement('div');
 
     rootNode.style.position = 'relative';
@@ -21,10 +19,10 @@ export default class CanvasEvents {
 
     rootNode.appendChild(eventsOverlayNode);
 
-    // Listen to the events we are interested at
     eventsOverlayNode.addEventListener('mousedown', this.handleMouseDown);
     eventsOverlayNode.addEventListener('mousemove', this.handleMouseMove);
     eventsOverlayNode.addEventListener('mouseup', this.handleMouseUp);
+    document.addEventListener('keydown', this.handleKeyDown);
   }
 
   private mouseButtonDownPosition = null as Point | null;
@@ -46,5 +44,9 @@ export default class CanvasEvents {
 
   private handleMouseUp = (e: MouseEvent) => {
     this.mouseButtonDownPosition = null;
+  };
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    this.onKeyDown.emitps(e.keyCode);
   };
 };

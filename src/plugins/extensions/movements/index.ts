@@ -17,7 +17,6 @@ export default class BasicActions {
         const [,direction] = action.split('/');
 
         // this.food.fullness[id] -= 1;
-        // console.log(this.food)
 
         const patch = {
           up: { x: 0, y: -1 },
@@ -26,13 +25,17 @@ export default class BasicActions {
           right: { x: +1, y: 0 },
         }[direction] as any;
 
-        this.cells.update(id, (cell) => ({
-          ...cell,
-          x: cell.x + patch.x,
-          y: cell.y + patch.y,
-        }))
-      }
+        const cell = this.cells.get(id) as any;
 
+        const x = cell.x + patch.x;
+        const y = cell.y + patch.y;
+
+        const spaceOccupiedByCell = this.cells.cells.some(($cell) => $cell.x === x && $cell.y === y);
+
+        if (!spaceOccupiedByCell) {
+          this.cells.update(id, (cell) => ({ ...cell, x, y }))
+        }
+      }
     });
   }
 };
