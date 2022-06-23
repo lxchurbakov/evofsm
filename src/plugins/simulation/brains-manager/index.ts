@@ -19,54 +19,54 @@ export class Brain {
   };
 };
 
-export const WALKING_IN_CIRCLES = new Brain([
+export const RANDOM_WALK = new Brain([
   { from: 0, inputs: [], to: 1 },
-  { from: 1, inputs: [], to: 2 },
-  { from: 2, inputs: [], to: 3 },
-  { from: 3, inputs: [], to: 0 },
+  { from: 1, inputs: [], to: 0 },
 ], [0], [
-  ['move/up'],
-  ['move/right'],
-  ['move/down'],
-  ['move/left', 'reproduce'],
+  ['move/random'],
+  ['reproduce'],
 ]);
 
 const random = (from, to) => Math.floor(Math.random() * (to - from) + from);
 
 export default class BrainsManager {
   private idgen = 1;
-  private brains = [{ ...WALKING_IN_CIRCLES, id: 0 }] as (Brain & { id: number })[];
+  private brains = [{ brain: RANDOM_WALK, id: 0 }] as { brain: Brain, id: number }[];
 
   public onCollectInputs = new EventEmitter();
   public onCollectOutputs = new EventEmitter();
 
-  public get = (id: number) => this.brains.find(($brain) => $brain.id === id);
+  public get = (id: number) => this.brains.find(($brain) => $brain.id === id)?.brain;
   public clone = (brainId: number) => {
-    const brain = this.get(brainId) as any;
-    let { rules, actions, states } = JSON.parse(JSON.stringify(brain))
-
+    const brain = this.get(brainId) as Brain;
+    let { rules, actions, states } = JSON.parse(JSON.stringify(brain));
 
     if (Math.random() > .7) {
-      const mutation = ['add-input', 'clone-rule', 'remove-rule', 'change-from', 'change-to', 'add-output', 'remove-output', 'clone-output', 'remove-outputs'][Math.floor(Math.random() * 9)];
+      const mutation = ['add-input', 'clone-rule', 'change-from', 'change-to', 'add-output', 'clone-output'][Math.floor(Math.random() * 6)];
+      // const mutation = ['add-input', 'clone-rule', 'remove-rule', 'change-from', 'change-to', 'add-output', 'remove-output', 'clone-output', 'remove-outputs'][Math.floor(Math.random() * 9)];
 
       if (mutation === 'add-input') {
         const possibleInputs = this.onCollectInputs.emitps(null).reduce((acc, c) => acc.concat(c), []);
 
+        console.log(possibleInputs, rules)
+
         rules[random(0, rules.length)].inputs.push(possibleInputs[random(0, possibleInputs.length)]);
+        console.log(rules)
       }
 
       if (mutation === 'clone-rule') {
         rules.push({ ...rules[random(0, rules.length)] });
       }
 
-      if (mutation === 'remove-rule') {
-        const toRemove = random(0, rules.length);
-        rules = rules.filter((r, i) => i !== toRemove);
-      }
+      // if (mutation === 'remove-rule') {
+      //   const toRemove = random(0, rules.length);
+      //   rules = rules.filter((r, i) => i !== toRemove);
+      // }
 
       if (mutation === 'change-from') {
         rules[random(0, rules.length)].from = random(0, actions.length);
       }
+
       if (mutation === 'change-to') {
         rules[random(0, rules.length)].to = random(0, actions.length);
       }
@@ -77,27 +77,27 @@ export default class BrainsManager {
         actions[random(0, actions.length)].push(possibleOutputs[random(0, possibleOutputs.length)]);
       }
 
-      if (mutation === 'remove-output') {
-        const actionIndex = random(0, actions.length);
-        const toRemove = random(0, actions[actionIndex].length);
-
-        actions[actionIndex] = actions[actionIndex].filter((a, i) => i !== toRemove);
-      }
+      // if (mutation === 'remove-output') {
+      //   const actionIndex = random(0, actions.length);
+      //   const toRemove = random(0, actions[actionIndex].length);
+      //
+      //   actions[actionIndex] = actions[actionIndex].filter((a, i) => i !== toRemove);
+      // }
 
       if (mutation === 'clone-output') {
         actions.push(actions[random(0, actions.length)]);
       }
 
-      if (mutation === 'remove-outputs') {
-        const toRemove = random(0, actions.length);
-        actions = actions.filter((r, i) => i !== toRemove);
-      }
+      // if (mutation === 'remove-outputs') {
+      //   const toRemove = random(0, actions.length);
+      //   actions = actions.filter((r, i) => i !== toRemove);
+      // }
     }
 
     const id = this.idgen++;
     const newBrain = new Brain(rules, states, actions);
 
-    this.brains.push({ id, ...newBrain });
+    this.brains.push({ id, brain: newBrain });
     return id;
   };
 

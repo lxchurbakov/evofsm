@@ -2,9 +2,14 @@ import { EventEmitter } from '/src/libs/events';
 
 export type Point = { x: number, y: number };
 
+const CLICK_THRESHOLD = 200;
+
 export default class CanvasEvents {
   public onDrag = new EventEmitter<Point>();
   public onKeyDown = new EventEmitter<number>();
+  public onMouseDown = new EventEmitter<Point>();
+  public onMouseUp = new EventEmitter<null>();
+  public onMouseClick = new EventEmitter<Point>();
 
   constructor (rootNode: HTMLElement) {
     const eventsOverlayNode = document.createElement('div');
@@ -26,9 +31,14 @@ export default class CanvasEvents {
   }
 
   private mouseButtonDownPosition = null as Point | null;
+  private mouseButtonDownTime = null as number | null;
 
   private handleMouseDown = (e: MouseEvent) => {
-    this.mouseButtonDownPosition = { x: e.clientX, y: e.clientY };
+    const p = { x: e.clientX, y: e.clientY };
+
+    this.onMouseDown.emitps(p);
+    this.mouseButtonDownPosition = p;
+    this.mouseButtonDownTime = new Date().getTime();
   };
 
   private handleMouseMove = (e: MouseEvent) => {
@@ -43,7 +53,13 @@ export default class CanvasEvents {
   };
 
   private handleMouseUp = (e: MouseEvent) => {
+    if (this.mouseButtonDownTime !== null && this.mouseButtonDownPosition !== null && new Date().getTime() - this.mouseButtonDownTime < CLICK_THRESHOLD) {
+      this.onMouseClick.emitps(this.mouseButtonDownPosition);
+    }
+
+    this.onMouseUp.emitps(null);
     this.mouseButtonDownPosition = null;
+    this.mouseButtonDownTime = null;
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {
