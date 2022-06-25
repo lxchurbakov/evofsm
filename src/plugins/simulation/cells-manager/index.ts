@@ -28,8 +28,6 @@ export default class CellsManager {
   public onCollectClues = new EventEmitter();
   public onSubmitAction = new EventEmitter();
   public onAfterAction  = new EventEmitter();
-  // public onDataOutput = new EventEmitter();
-  // public onAfterTick = new EventEmitter();
 
   constructor (private window: RenderWindow, private ticks: SimulationTicks, private brains: BrainsManager) {
     // Setup cells rendering
@@ -56,7 +54,7 @@ export default class CellsManager {
     });
 
     // Create the very first cell
-    
+
     const simpleBrainId = this.brains.save(new Brain(0, [{ from: 0, clues: [], to: 0 }], [['move/random', 'reproduce']]));
 
     this.spawn({ x: 0, y: 0 }, simpleBrainId)
