@@ -24,6 +24,7 @@ export default class CellsManager {
   public get = (id: number) => this.cells.get(id);
   public update = (id: number, u: (cell: Cell) => Cell) => { const cell = this.get(id); if (cell) this.cells.set(id, u(cell)); };
   public ids = () => this.cells.keys();
+  public isOccupied = (p: Point) => Array.from(this.ids()).some((id) => this.get(id)?.x === p.x && this.get(id)?.y === p.y);
 
   public onCollectClues = new EventEmitter();
   public onSubmitAction = new EventEmitter();
@@ -52,11 +53,5 @@ export default class CellsManager {
         this.onAfterAction.emitps(id);
       }
     });
-
-    // Create the very first cell
-
-    const simpleBrainId = this.brains.save(new Brain(0, [{ from: 0, clues: [], to: 0 }], [['move/random', 'reproduce']]));
-
-    this.spawn({ x: 0, y: 0 }, simpleBrainId)
   };
 };

@@ -19,7 +19,7 @@ export class Brain {
       .filter((rule) => inputsOverlap(rule.clues, clues))
       .map((r) => r.to)[0];
 
-    return this.actions[this.state];
+    return this.actions[(this.actions.length + (this.state % this.actions.length)) % this.actions.length];
   };
 };
 
@@ -27,8 +27,6 @@ export default class BrainsManager {
   private idgen = 1;
   private brains = new Map<number, Brain>();
 
-  // public onCollectClues = new EventEmitter();
-  // public onCollectOutputs = new EventEmitter();
   public onMutate = new EventEmitter();
 
   public get = (id: number) => this.brains.get(id);
@@ -37,12 +35,18 @@ export default class BrainsManager {
 
   public tick = (id: number, clues: Clue[]) => this.get(id)?.tick(clues) || [];
 
+  c = 0;
+
   public reproduce = (id: number) => {
     const parentBrain = this.get(id);
 
     if (!parentBrain) throw new Error(`Brain ${id} is not found`);
 
-    const { state, rules, actions } = this.onMutate.emitss({ ...parentBrain });
+    const { state, rules, actions } = this.onMutate.emitss(JSON.parse(JSON.stringify(parentBrain)));
+
+    if ((this.c++)%50 === 0) {
+      console.log({ rules, actions })
+    }
 
     return this.save(new Brain(state, rules, actions));
   };

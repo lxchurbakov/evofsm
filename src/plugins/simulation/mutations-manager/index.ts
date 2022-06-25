@@ -1,84 +1,58 @@
 import BrainsManager from '/src/plugins/simulation/brains-manager';
 
-// const CLONE_RULE_POSSIBILITY = .1;
+import { EventEmitter } from '/src/libs/events';
+
+const CLONE_RULE_POSSIBILITY = .3;
+const ADD_RULE_CLUE_POSSIBILITY = .1;
+const ALTER_RULE_FROM_POSSIBILITY = .07;
+const ALTER_RULE_TO_POSSIBILITY = .07;
+const CLONE_ACTION_POSSIBILITY = .1;
+const ADD_ACTION_POSSIBILITY = .05;
+const REMOVE_ACTION_POSSIBILITY = .05;
+
+const random = (from: number, to: number) => Math.floor(Math.random() * (to - from) + from);
+const randomOf = <C extends any[]>(c: C) => c[Math.floor(Math.random() * c.length)];
 
 export default class MutationsManager {
+  public onCollectClues = new EventEmitter();
+  public onCollectActions = new EventEmitter();
+
+  private clues = () => this.onCollectClues.emitps(null).reduce((acc, v) => acc.concat(v), []);
+  private actions = () => this.onCollectActions.emitps(null).reduce((acc, v) => acc.concat(v), []);
+
   constructor (private brains: BrainsManager) {
-    // First of all we should try to clone the rule
     this.brains.onMutate.on(({ state, rules, actions }) => {
-      // if (Math.random() < CLONE_RULE_POSSIBILITY) {
-      //
-      // }
+      if (Math.random() < CLONE_RULE_POSSIBILITY) {
+        rules.push(randomOf(rules));
+      }
+
+      if (Math.random() < ADD_RULE_CLUE_POSSIBILITY) {
+        randomOf(rules).clues.push(randomOf(this.clues()));
+      }
+
+      if (Math.random() < ALTER_RULE_FROM_POSSIBILITY) {
+        randomOf(rules).from += random(-1, 2);
+      }
+
+      if (Math.random() < ALTER_RULE_TO_POSSIBILITY) {
+        randomOf(rules).to += random(-1, 2);
+      }
+
+      if (Math.random() < CLONE_ACTION_POSSIBILITY) {
+        actions.push(randomOf(actions));
+      }
+
+      if (Math.random() < ADD_ACTION_POSSIBILITY) {
+        randomOf(actions).push(randomOf(this.actions()));
+      }
+
+      if (Math.random() < REMOVE_ACTION_POSSIBILITY) {
+        const index = random(0, actions.length);
+
+        actions[index].splice(random(0, actions[index].length), 1);
+      }
 
       return { state, rules, actions };
     });
   }
 };
-
-// [{ brain: RANDOM_WALK, id: 0 }] as { brain: Brain, id: number }[];
-
-// public clone = (brainId: number) => {
-//   const brain = this.get(brainId) as Brain;
-//   let { rules, actions, states } = JSON.parse(JSON.stringify(brain));
-//
-//   if (Math.random() > .7) {
-//     const mutation = ['add-input', 'clone-rule', 'change-from', 'change-to', 'add-output', 'clone-output'][Math.floor(Math.random() * 6)];
-//     // const mutation = ['add-input', 'clone-rule', 'remove-rule', 'change-from', 'change-to', 'add-output', 'remove-output', 'clone-output', 'remove-outputs'][Math.floor(Math.random() * 9)];
-//
-//     if (mutation === 'add-input') {
-//       const possibleInputs = this.onCollectInputs.emitps(null).reduce((acc, c) => acc.concat(c), []);
-//
-//       console.log(possibleInputs, rules)
-//
-//       rules[random(0, rules.length)].inputs.push(possibleInputs[random(0, possibleInputs.length)]);
-//       console.log(rules)
-//     }
-//
-//     if (mutation === 'clone-rule') {
-//
-//     }
-//
-//     // if (mutation === 'remove-rule') {
-//     //   const toRemove = random(0, rules.length);
-//     //   rules = rules.filter((r, i) => i !== toRemove);
-//     // }
-//
-//     if (mutation === 'change-from') {
-//       rules[random(0, rules.length)].from = random(0, actions.length);
-//     }
-//
-//     if (mutation === 'change-to') {
-//       rules[random(0, rules.length)].to = random(0, actions.length);
-//     }
-//
-//     if (mutation === 'add-output') {
-//       const possibleOutputs = this.onCollectOutputs.emitps(null).reduce((acc, c) => acc.concat(c), []);
-//
-//       actions[random(0, actions.length)].push(possibleOutputs[random(0, possibleOutputs.length)]);
-//     }
-//
-//     // if (mutation === 'remove-output') {
-//     //   const actionIndex = random(0, actions.length);
-//     //   const toRemove = random(0, actions[actionIndex].length);
-//     //
-//     //   actions[actionIndex] = actions[actionIndex].filter((a, i) => i !== toRemove);
-//     // }
-//
-//     if (mutation === 'clone-output') {
-//       actions.push(actions[random(0, actions.length)]);
-//     }
-//
-//     // if (mutation === 'remove-outputs') {
-//     //   const toRemove = random(0, actions.length);
-//     //   actions = actions.filter((r, i) => i !== toRemove);
-//     // }
-//   }
-//
-//   const id = this.idgen++;
-//   const newBrain = new Brain(rules, states, actions);
-//
-//   this.brains.push({ id, brain: newBrain });
-//   return id;
-// };
-//
-// public tick = (brainId: number, inputs: any[]) => this.get(brainId)?.tick(inputs) || [];

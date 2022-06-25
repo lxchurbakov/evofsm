@@ -35,10 +35,10 @@ export default (node: HTMLElement) => {
   const cells = new CellsManager(renderWindow, ticks, brains);
   const mutations = new MutationsManager(brains);
 
-  const food = new Food(renderWindow, cells, ticks);
+  const food = new Food(renderWindow, mutations, cells, ticks);
   const reproducing = new Reproducing(mutations, brains, cells, food);
-  const movements = new Movements(cells);
-  const sunlight = new Sunlight(renderWindow, ticks, food);
+  const movements = new Movements(mutations, cells);
+  const sunlight = new Sunlight(renderWindow, ticks, food, cells, mutations);
 
   // const photosynthesis = new Photosynthesis(renderWindow, ticks, cells, brains);
 
@@ -57,7 +57,7 @@ export default (node: HTMLElement) => {
   const simpleBrainId = brains.save(new Brain(0, [{ from: 0, clues: [], to: 0 }], [['move/random', 'reproduce']]));
   const cellId = cells.spawn({ x: 0, y: 0 }, simpleBrainId);
 
-  food.setFullness(cellId, 100);
+  food.setFullness(cellId, 500);
 
-  sunlight.spawn({ x: 0, y: 0, r: 10 })
+  sunlight.spawn({ x: 0, y: 0, r: 30 })
 };
