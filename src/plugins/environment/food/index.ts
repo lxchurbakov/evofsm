@@ -9,8 +9,22 @@ export type Food = Point & { value: number };
 const GRID_SIZE = 20;
 const FOOD_COLOR = '#4caf50';
 
+class JMap <K, V> {
+  private map = new Map<string, V>();
+
+  public get = (k: K) => this.map.get(JSON.stringify(k));
+  public set = (k: K, v: V) => this.map.set(JSON.stringify(k), v);
+  public delete = (k: K) => this.map.delete(JSON.stringify(k));
+
+  public keys = function* () {
+    for (let key of this.map.keys()) {
+      yield JSON.parse(key) as K;
+    }
+  }
+};
+
 export default class FoodManager {
-  public food = new Map<Point, number>();
+  public food = new JMap<Point, number>();
   public fullness = new Map<number, number>();
 
   public get = (p: Point) => this.food.get(p);
@@ -40,11 +54,11 @@ export default class FoodManager {
 
       if (cell && fullness) {
         const p = { x: cell.x, y: cell.y };
-        const food = this.food.get(p);
+        const food = this.get(p);
 
         if (food) {
           this.setFullness(id, fullness + food);
-          this.despawn(p)
+          this.despawn(p);
         }
       }
     });
