@@ -1,105 +1,49 @@
+// Brains Manager Plugin
+// keeps the track of all the brains in the application
+// adds cloning mechanism, adds mutation to the brain
+// and is extendable with this process
 import { EventEmitter } from '/src/libs/events';
 
-export type Input = any;
-export type Rule = { from: number; inputs: Input[]; to: number };
+export type Clue = any;
+export type Rule = { from: number; clues: Clue[]; to: number };
 
-const inputsEqual = (a: Input, b: Input) => JSON.stringify(a) === JSON.stringify(b);
-const inputsOverlap = (rule: Input[], required: Input[]) => rule.every(($c) => required.some((c) => inputsEqual($c, c)));
+const inputsEqual = (a: Clue, b: Clue) => JSON.stringify(a) === JSON.stringify(b);
+const inputsOverlap = (rule: Clue[], required: Clue[]) => rule.every(($c) => required.some((c) => inputsEqual($c, c)));
 
 export class Brain {
-  constructor (public rules: Rule[], public states: number[], public actions: string[][]) {}
+  constructor (public state: number, public rules: Rule[], public actions: string[][]) {}
 
-  public tick = (conditions: Input[]) => {
-    this.states = this.rules
-      .filter((rule) => this.states.indexOf(rule.from) > -1)
-      .filter((rule) => inputsOverlap(rule.inputs, conditions))
-      .map((r) => r.to);
+  public tick = (clues: Clue[]) => {
+    this.state = this.rules
+      .filter((rule) => this.state === rule.from)
+      .filter((rule) => inputsOverlap(rule.clues, clues))
+      .map((r) => r.to)[0];
 
-    return this.states.map((s) => this.actions[s] || []).reduce((acc, a) => acc.concat(a), []);
+    return this.actions[this.state];
   };
 };
 
-export const RANDOM_WALK = new Brain([
-  { from: 0, inputs: [], to: 1 },
-  { from: 1, inputs: [], to: 0 },
-], [0], [
-  ['move/random'],
-  ['reproduce'],
-]);
-
-const random = (from, to) => Math.floor(Math.random() * (to - from) + from);
-
 export default class BrainsManager {
   private idgen = 1;
-  private brains = [{ brain: RANDOM_WALK, id: 0 }] as { brain: Brain, id: number }[];
+  private brains = new Map<number, Brain>();
 
-  public onCollectInputs = new EventEmitter();
-  public onCollectOutputs = new EventEmitter();
+  // public onCollectClues = new EventEmitter();
+  // public onCollectOutputs = new EventEmitter();
+  public onMutate = new EventEmitter();
 
-  public get = (id: number) => this.brains.find(($brain) => $brain.id === id)?.brain;
-  public clone = (brainId: number) => {
-    const brain = this.get(brainId) as Brain;
-    let { rules, actions, states } = JSON.parse(JSON.stringify(brain));
+  public get = (id: number) => this.brains.get(id);
+  public save = (brain: Brain) => { const id = this.idgen++; this.brains.set(id, brain); return id; };
+  public remove = (id: number) => this.brains.delete(id);
 
-    if (Math.random() > .7) {
-      const mutation = ['add-input', 'clone-rule', 'change-from', 'change-to', 'add-output', 'clone-output'][Math.floor(Math.random() * 6)];
-      // const mutation = ['add-input', 'clone-rule', 'remove-rule', 'change-from', 'change-to', 'add-output', 'remove-output', 'clone-output', 'remove-outputs'][Math.floor(Math.random() * 9)];
+  public tick = (id: number, clues: Clue[]) => this.get(id)?.tick(clues) || [];
 
-      if (mutation === 'add-input') {
-        const possibleInputs = this.onCollectInputs.emitps(null).reduce((acc, c) => acc.concat(c), []);
+  public reproduce = (id: number) => {
+    const parentBrain = this.get(id);
 
-        console.log(possibleInputs, rules)
+    if (!parentBrain) throw new Error(`Brain ${id} is not found`);
 
-        rules[random(0, rules.length)].inputs.push(possibleInputs[random(0, possibleInputs.length)]);
-        console.log(rules)
-      }
+    const { state, rules, actions } = this.onMutate.emitss({ ...parentBrain });
 
-      if (mutation === 'clone-rule') {
-        rules.push({ ...rules[random(0, rules.length)] });
-      }
-
-      // if (mutation === 'remove-rule') {
-      //   const toRemove = random(0, rules.length);
-      //   rules = rules.filter((r, i) => i !== toRemove);
-      // }
-
-      if (mutation === 'change-from') {
-        rules[random(0, rules.length)].from = random(0, actions.length);
-      }
-
-      if (mutation === 'change-to') {
-        rules[random(0, rules.length)].to = random(0, actions.length);
-      }
-
-      if (mutation === 'add-output') {
-        const possibleOutputs = this.onCollectOutputs.emitps(null).reduce((acc, c) => acc.concat(c), []);
-
-        actions[random(0, actions.length)].push(possibleOutputs[random(0, possibleOutputs.length)]);
-      }
-
-      // if (mutation === 'remove-output') {
-      //   const actionIndex = random(0, actions.length);
-      //   const toRemove = random(0, actions[actionIndex].length);
-      //
-      //   actions[actionIndex] = actions[actionIndex].filter((a, i) => i !== toRemove);
-      // }
-
-      if (mutation === 'clone-output') {
-        actions.push(actions[random(0, actions.length)]);
-      }
-
-      // if (mutation === 'remove-outputs') {
-      //   const toRemove = random(0, actions.length);
-      //   actions = actions.filter((r, i) => i !== toRemove);
-      // }
-    }
-
-    const id = this.idgen++;
-    const newBrain = new Brain(rules, states, actions);
-
-    this.brains.push({ id, brain: newBrain });
-    return id;
+    return this.save(new Brain(state, rules, actions));
   };
-
-  public tick = (brainId: number, inputs: any[]) => this.get(brainId)?.tick(inputs) || [];
 };
