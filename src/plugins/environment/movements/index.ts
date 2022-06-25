@@ -1,16 +1,18 @@
 import CellsManager from '/src/plugins/simulation/cells-manager';
-
-// // And finally we make the cell able to move
-// this.brains.onCollectOutputs.on(() => ([
-//   'move/up',
-//   'move/right',
-//   'move/down',
-//   'move/left',
-//   'move/random',
-// ]));
+import MutationsManager from '/src/plugins/simulation/mutations-manager';
 
 export default class Movements {
-  constructor (private cells: CellsManager) {
+  constructor (private mutations: MutationsManager, private cells: CellsManager) {
+    this.mutations.onCollectActions.on(() => {
+      return [
+        'move/up',
+        'move/right',
+        'move/down',
+        'move/left',
+        'move/random',
+      ];
+    });
+
     this.cells.onSubmitAction.on(({ id, action }) => {
       if (action.startsWith('move/')) {
         const [,direction] = action.split('/');

@@ -1,6 +1,8 @@
 import RenderWindow from '/src/plugins/core/render-window';
-import CellsManager from '/src/plugins/simulation/cells-manager';
 import SimulationTicks from '/src/plugins/core/simulation-ticks';
+
+import CellsManager from '/src/plugins/simulation/cells-manager';
+import MutationsManager from '/src/plugins/simulation/mutations-manager';
 
 import { Point } from '/src/libs/utils';
 
@@ -35,7 +37,7 @@ export default class FoodManager {
   public setFullness = (id: number, value: number) => this.fullness.set(id, value);
   public removeFullness = (id: number) => this.fullness.delete(id);
 
-  constructor (private renderWindow: RenderWindow, private cells: CellsManager, private ticks: SimulationTicks) {
+  constructor (private renderWindow: RenderWindow, private mutations: MutationsManager, private cells: CellsManager, private ticks: SimulationTicks) {
     // First of all we render food
     this.renderWindow.onRender.on((context: CanvasRenderingContext2D) => {
       context.fillStyle = FOOD_COLOR;
@@ -80,6 +82,27 @@ export default class FoodManager {
           this.setFullness(id, fullness - 1);
         }
       }
+    });
+
+    // Let the mutations to get vision
+    this.mutations.onCollectClues.on(() => {
+      return [
+        { type: 'see', what: 'food', where: 'up' },
+        { type: 'see', what: 'food', where: 'down' },
+        { type: 'see', what: 'food', where: 'right' },
+        { type: 'see', what: 'food', where: 'left' },
+      ];
+    });
+
+    this.cells.onCollectClues.on((id: number) => {
+      const cell = this.cells.get(id) as any;
+
+      return [
+        this.food.get({ x: cell.x, y: cell.y - 1 }) ? { type: 'see', what: 'food', where: 'up' } : null,
+        this.food.get({ x: cell.x, y: cell.y + 1 }) ? { type: 'see', what: 'food', where: 'down' } : null,
+        this.food.get({ x: cell.x - 1, y: cell.y }) ? { type: 'see', what: 'food', where: 'left' } : null,
+        this.food.get({ x: cell.x + 1, y: cell.y }) ? { type: 'see', what: 'food', where: 'right' } : null,
+      ].filter(Boolean);
     });
   }
 };

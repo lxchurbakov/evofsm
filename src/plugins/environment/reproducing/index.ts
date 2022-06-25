@@ -6,10 +6,9 @@ import Food from '/src/plugins/environment/food';
 
 export default class Reproducing {
   constructor (private mutations: MutationsManager, private brains: BrainsManager, private cells: CellsManager, private food: Food) {
-    // this.mutations.
-    // this.brains.onCollectOutputs.on(() => ([
-    //   'reproduce'
-    // ]));
+    this.mutations.onCollectActions.on(() => {
+      return ['reproduce'];
+    });
 
     this.cells.onSubmitAction.on(({ id, action }) => {
       if (action === 'reproduce') {
